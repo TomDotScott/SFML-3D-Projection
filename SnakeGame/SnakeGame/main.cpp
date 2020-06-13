@@ -111,7 +111,7 @@ int main() {
 											   {          0,  sin(angle),  cos(angle)}
 			});
 
-		Matrix rotateY(3, 3, { { cos(angle),           0, -sin(angle)},
+		Matrix rotateY(3, 3, { { cos(angle),           0,  sin(angle)},
 											   {          0,           1,           0},
 											   {-sin(angle),           0,  cos(angle)}
 			});
@@ -135,12 +135,12 @@ int main() {
 
 			projectedPoints.emplace_back(projected2DMatrix.GetValue(0, 0) * multiplier, projected2DMatrix.GetValue(1, 0) * multiplier);
 		}
-		sf::CircleShape c(10);
+		/*sf::CircleShape c(10);
 
 		for (auto point : projectedPoints) {
 			c.setPosition(point.m_x + static_cast<float>(window.getSize().x) / 2, point.m_y + static_cast<float>(window.getSize().y) / 2);
 			window.draw(c);
-		}
+		}*/
 
 		for (int i = 0; i < 4; i++)
 		{
