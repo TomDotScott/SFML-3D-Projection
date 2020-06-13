@@ -63,15 +63,30 @@ Matrix matmul(Matrix& a, Matrix& b) {
 	return c;
 }
 
+void Connect(Vector3 _a, Vector3 _b, sf::RenderWindow& _window)
+{
+	sf::VertexArray lines(sf::LineStrip, 2);
+	lines[0].position = { _a.m_x + static_cast<float>(_window.getSize().x) / 2, _a.m_y + +static_cast<float>(_window.getSize().y) / 2};
+	lines[1].position = { _b.m_x + static_cast<float>(_window.getSize().x) / 2, _b.m_y + +static_cast<float>(_window.getSize().y) / 2 };
+	_window.draw(lines);
+}
+
+
 int main() {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "C++ Snake ICA : U0018197");
 
+	float multiplier{ 200.f };
+	
 	std::vector<Vector3> points
 	{
-		{-50, -50},
-		{50, -50},
-		{50, 50},
-		{-50, 50}
+		{-0.5, -0.5, -0.5},
+		{ 0.5, -0.5, -0.5},
+		{ 0.5,  0.5, -0.5},
+		{-0.5,  0.5, -0.5},
+		{-0.5, -0.5,  0.5},
+		{ 0.5, -0.5,  0.5},
+		{ 0.5,  0.5,  0.5},
+		{-0.5,  0.5,  0.5}
 	};
 
 	Matrix projectionMatrix(2, 3, { {1, 0, 0}, {0, 1, 0} });
@@ -91,43 +106,49 @@ int main() {
 		}
 		window.clear();
 
-		Matrix rotateX(2, 2, { {          1,           0,           0},
+		Matrix rotateX(3, 3, { {          1,           0,           0},
 											   {          0,  cos(angle), -sin(angle)},
 											   {          0,  sin(angle),  cos(angle)}
-		});
-		
-		Matrix rotateY(2, 2, { { cos(angle),           0, -sin(angle)},
+			});
+
+		Matrix rotateY(3, 3, { { cos(angle),           0, -sin(angle)},
 											   {          0,           1,           0},
 											   {-sin(angle),           0,  cos(angle)}
-		});
-		
-		Matrix rotateZ(2, 2, { { cos(angle), -sin(angle),            0}, 
+			});
+
+		Matrix rotateZ(3, 3, { { cos(angle), -sin(angle),            0},
 											   { sin(angle),  cos(angle),            0},
 											   {          0,           0,            1}
-		});
-		
-		sf::CircleShape c(5);
-		
+			});
+
+		std::vector<Vector3> projectedPoints{};
+
 		//this is where the fun stuff is
-		for (auto& point : points) {
-			Matrix matrixFromPoint{ 3, 1, {{point.m_x}, {point.m_y}, {point.m_z}} };
+		for (int i = 0; i < points.size(); i++) {
+			Matrix v{ 3, 1, {{points[i].m_x}, {points[i].m_y}, {points[i].m_z}} };
 
-			//2 x 1 projected2D matrix
-			Matrix projected2DMatrix = matmul(projectionMatrix, matrixFromPoint);
+			Matrix rotated = matmul(rotateY, v);
+			rotated = matmul(rotateX, rotated);
+			rotated = matmul(rotateZ, rotated);
 
-			// rotate the matrix based on the rotation matrix
-			Matrix rotatedMatrix = matmul(rotateY, projected2DMatrix);
-			
-			auto x = rotatedMatrix.GetValue(0, 0);
-			auto y = rotatedMatrix.GetValue(1, 0);
+			Matrix projected2DMatrix = matmul(projectionMatrix, rotated);
 
-			
-			// draw circle relative to the centre of the screen
-			c.setPosition(x + static_cast<float>(window.getSize().x) / 2, y + static_cast<float>(window.getSize().y) / 2);
+			projectedPoints.emplace_back(projected2DMatrix.GetValue(0, 0) * multiplier, projected2DMatrix.GetValue(1, 0) * multiplier);
+		}
+		sf::CircleShape c(10);
 
+		for (auto point : projectedPoints) {
+			c.setPosition(point.m_x + static_cast<float>(window.getSize().x) / 2, point.m_y + static_cast<float>(window.getSize().y) / 2);
 			window.draw(c);
 		}
 
+		for (int i = 0; i < 4; i++)
+		{
+			Connect(projectedPoints[i], projectedPoints[(i + 1) % 4], window);
+			Connect(projectedPoints[i + 4], projectedPoints[((i + 1) % 4) + 4], window);
+			Connect(projectedPoints[i], projectedPoints[i + 4], window);
+		}
+		
 		window.display();
 		angle += 0.0005f;
 	}
