@@ -91,7 +91,20 @@ int main() {
 		}
 		window.clear();
 
-		Matrix rotationMatrix(2, 2, { {cos(angle), -sin(angle)}, {sin(angle), cos(angle)} });
+		Matrix rotateX(2, 2, { {          1,           0,           0},
+											   {          0,  cos(angle), -sin(angle)},
+											   {          0,  sin(angle),  cos(angle)}
+		});
+		
+		Matrix rotateY(2, 2, { { cos(angle),           0, -sin(angle)},
+											   {          0,           1,           0},
+											   {-sin(angle),           0,  cos(angle)}
+		});
+		
+		Matrix rotateZ(2, 2, { { cos(angle), -sin(angle),            0}, 
+											   { sin(angle),  cos(angle),            0},
+											   {          0,           0,            1}
+		});
 		
 		sf::CircleShape c(5);
 		
@@ -103,7 +116,7 @@ int main() {
 			Matrix projected2DMatrix = matmul(projectionMatrix, matrixFromPoint);
 
 			// rotate the matrix based on the rotation matrix
-			Matrix rotatedMatrix = matmul(rotationMatrix, projected2DMatrix);
+			Matrix rotatedMatrix = matmul(rotateY, projected2DMatrix);
 			
 			auto x = rotatedMatrix.GetValue(0, 0);
 			auto y = rotatedMatrix.GetValue(1, 0);
