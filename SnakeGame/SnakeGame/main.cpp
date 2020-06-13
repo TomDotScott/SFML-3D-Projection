@@ -75,7 +75,7 @@ int main() {
 	};
 
 	Matrix projectionMatrix(2, 3, { {1, 0, 0}, {0, 1, 0} });
-
+	
 	float angle = 0;
 	
 	while (window.isOpen()) {
@@ -91,6 +91,8 @@ int main() {
 		}
 		window.clear();
 
+		Matrix rotationMatrix(2, 2, { {cos(angle), -sin(angle)}, {sin(angle), cos(angle)} });
+		
 		sf::CircleShape c(5);
 		
 		//this is where the fun stuff is
@@ -98,10 +100,13 @@ int main() {
 			Matrix matrixFromPoint{ 3, 1, {{point.m_x}, {point.m_y}, {point.m_z}} };
 
 			//2 x 1 projected2D matrix
-			Matrix projectedMatrix = matmul(projectionMatrix, matrixFromPoint);
+			Matrix projected2DMatrix = matmul(projectionMatrix, matrixFromPoint);
 
-			auto x = projectedMatrix.GetValue(0, 0);
-			auto y = projectedMatrix.GetValue(1, 0);
+			// rotate the matrix based on the rotation matrix
+			Matrix rotatedMatrix = matmul(rotationMatrix, projected2DMatrix);
+			
+			auto x = rotatedMatrix.GetValue(0, 0);
+			auto y = rotatedMatrix.GetValue(1, 0);
 
 			
 			// draw circle relative to the centre of the screen
@@ -111,7 +116,7 @@ int main() {
 		}
 
 		window.display();
-		angle += 0.01f;
+		angle += 0.0005f;
 	}
 	return 0;
 }
