@@ -4,7 +4,7 @@
 
 struct Matrix {
 public:
-	explicit Matrix(int _rows, int _cols, const std::vector<std::vector<float>>& _values = std::vector<std::vector<float>>()) {
+	explicit Matrix(const int _rows, const int _cols, const std::vector<std::vector<float>>& _values = std::vector<std::vector<float>>()) {
 		m_rows = _rows;
 		m_columns = _cols;
 
@@ -34,8 +34,14 @@ public:
 		m_values[i][j] = _val;
 	}
 
+	float GetValue(int i, int j) const
+	{
+		return m_values[i][j];
+	}
+
 	int m_rows;
 	int m_columns;
+private:
 	std::vector<std::vector<float>> m_values;
 };
 
@@ -44,19 +50,16 @@ Matrix matmul(Matrix& a, Matrix& b) {
 	const int n = a.m_rows;
 	const int m = a.m_columns;
 	const int p = b.m_columns;
-
 	Matrix c(n, p);
-	
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < p; j++) {
 			float sum{};
 			for (int k = 0; k < m; k++) {
-				sum += a.m_values[i][k] * b.m_values[k][j];
+				sum += a.GetValue(i, k) * b.GetValue(k, j);
 			}
 			c.SetValue(sum, i, j);
 		}
 	}
-
 	return c;
 }
 
@@ -71,24 +74,10 @@ int main() {
 		{-50, 50}
 	};
 
-	// Projection Matrix
-	float projection[2][3]
-	{
-		{1, 0, 0},
-		{0, 1, 0}
-	};
+	Matrix projectionMatrix(2, 3, { {1, 0, 0}, {0, 1, 0} });
 
-	Matrix m1(3, 3, { { 1, 2, 1 },{0, 1, 0}, {2, 3, 4} });
-	Matrix m2(3, 2, { { 2, 5 },{6, 7 }, {1, 8} });
-
-	Matrix m3 = matmul(m1, m2);
-	for (const auto& row : m3.m_values) {
-		for (auto column : row) {
-			std::cout << column << " ";
-		}
-		std::cout << std::endl;
-	}
-
+	float angle = 0;
+	
 	while (window.isOpen()) {
 		sf::Event event{};
 		while (window.pollEvent(event)) {
@@ -102,16 +91,27 @@ int main() {
 		}
 		window.clear();
 
+		sf::CircleShape c(5);
+		
 		//this is where the fun stuff is
 		for (auto& point : points) {
-			sf::CircleShape c(5);
+			Matrix matrixFromPoint{ 3, 1, {{point.m_x}, {point.m_y}, {point.m_z}} };
+
+			//2 x 1 projected2D matrix
+			Matrix projectedMatrix = matmul(projectionMatrix, matrixFromPoint);
+
+			auto x = projectedMatrix.GetValue(0, 0);
+			auto y = projectedMatrix.GetValue(1, 0);
+
+			
 			// draw circle relative to the centre of the screen
-			c.setPosition(point.m_x + static_cast<float>(window.getSize().x) / 2, point.m_y + static_cast<float>(window.getSize().y) / 2);
+			c.setPosition(x + static_cast<float>(window.getSize().x) / 2, y + static_cast<float>(window.getSize().y) / 2);
 
 			window.draw(c);
 		}
 
 		window.display();
+		angle += 0.01f;
 	}
 	return 0;
 }
